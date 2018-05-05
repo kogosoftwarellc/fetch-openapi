@@ -21,8 +21,7 @@ function createApi(options) {
     }
     throw new Error('No security scheme was fulfilled by the provided securityHandlers for operation ' + operationId);
   };
-  const ensureRequiredSecurityHandlersExist = () => {
-    let requiredSecurityHandlers = ['petstore_auth'];
+  const ensureRequiredSecurityHandlersExist = (requiredSecurityHandlers) => {
     for (let i = 0, ilen = requiredSecurityHandlers.length; i < ilen; i++) {
       let requiredSecurityHandler = requiredSecurityHandlers[i];
       if (typeof securityHandlers[requiredSecurityHandler] !== 'function') {
@@ -31,7 +30,7 @@ function createApi(options) {
       }
     }
   };
-  ensureRequiredSecurityHandlersExist();
+  ensureRequiredSecurityHandlersExist(['petstore_auth']);
   const buildQuery = (obj) => {
     return Object.keys(obj)
       .filter(key => typeof obj[key] !== 'undefined')

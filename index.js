@@ -3,6 +3,27 @@ var Program = composites.Program;
 var Statement = composites.Statement;
 var logPrefix = require('./package.json').name + ': ';
 
+var handleSecurityFn = require('./handleSecurity');
+var ensureRequiredSecurityHandlersExistFn = require('./ensureRequiredSecurityHandlersExist');
+
+function padFunctionBody(text) {
+  // pad all lines but the first with two spaces
+  // this is to pass the tests, but doesn't functionally matter
+  var PADDING = '  '
+  var body = text
+    .split('\n')
+    .map((line, i) => {
+      if (i === 0 || line == '') {
+        return line
+      }
+
+      return PADDING + line;
+    })
+    .join('\n')
+
+  return body
+}
+
 module.exports = buildApiService;
 
 function buildApiService(apiDoc, options) {
@@ -47,36 +68,15 @@ function buildApiService(apiDoc, options) {
   apiFunctionDeclaration.push('  const cors = !!options.cors;');
   apiFunctionDeclaration.push('  const mode = cors ? \'cors\' : \'basic\';');
   if (hasSecurity) {
+    var handleSecurityBody = padFunctionBody(handleSecurityFn.toString());
+    var ensureRequiredSecurityHandlersExistBody = padFunctionBody(ensureRequiredSecurityHandlersExistFn.toString());
+
     apiFunctionDeclaration.push('  const securityHandlers = options.securityHandlers || {};');
 
-    apiFunctionDeclaration.push('  const handleSecurity = (security, headers, params, operationId) => {');
-    apiFunctionDeclaration.push('    for (let i = 0, ilen = security.length; i < ilen; i++) {');
-    apiFunctionDeclaration.push('      let scheme = security[i];');
-    apiFunctionDeclaration.push('      let schemeParts = Object.keys(scheme);');
-    apiFunctionDeclaration.push('      for (let j = 0, jlen = schemeParts.length; j < jlen; j++) {');
-    apiFunctionDeclaration.push('        let schemePart = schemeParts[j];');
-    apiFunctionDeclaration.push('        let fulfilsSecurityRequirements = securityHandlers[schemePart](');
-    apiFunctionDeclaration.push('            headers, params, schemePart);');
-    apiFunctionDeclaration.push('        if (fulfilsSecurityRequirements) {');
-    apiFunctionDeclaration.push('          return;');
-    apiFunctionDeclaration.push('        }');
-    apiFunctionDeclaration.push('');
-    apiFunctionDeclaration.push('      }');
-    apiFunctionDeclaration.push('    }');
-    apiFunctionDeclaration.push('    throw new Error(\'No security scheme was fulfilled by the provided securityHandlers for operation \' + operationId);');
-    apiFunctionDeclaration.push('  };');
+    apiFunctionDeclaration.push('  const handleSecurity = ' + handleSecurityBody + ';');
 
-    apiFunctionDeclaration.push('  const ensureRequiredSecurityHandlersExist = () => {');
-    apiFunctionDeclaration.push('    let requiredSecurityHandlers = [', requiredSecurityHandlers, '];');
-    apiFunctionDeclaration.push('    for (let i = 0, ilen = requiredSecurityHandlers.length; i < ilen; i++) {');
-    apiFunctionDeclaration.push('      let requiredSecurityHandler = requiredSecurityHandlers[i];');
-    apiFunctionDeclaration.push('      if (typeof securityHandlers[requiredSecurityHandler] !== \'function\') {');
-    apiFunctionDeclaration.push('        throw new Error(\'Expected to see a security handler for scheme "\' +');
-    apiFunctionDeclaration.push('            requiredSecurityHandler + \'" in options.securityHandlers\');');
-    apiFunctionDeclaration.push('      }');
-    apiFunctionDeclaration.push('    }');
-    apiFunctionDeclaration.push('  };');
-    apiFunctionDeclaration.push('  ensureRequiredSecurityHandlersExist();');
+    apiFunctionDeclaration.push('  const ensureRequiredSecurityHandlersExist = ' + ensureRequiredSecurityHandlersExistBody + ';');
+    apiFunctionDeclaration.push('  ensureRequiredSecurityHandlersExist([', requiredSecurityHandlers, ']);');
   }
   apiFunctionDeclaration.push('  const buildQuery = (obj) => {');
   apiFunctionDeclaration.push('    return Object.keys(obj)');
