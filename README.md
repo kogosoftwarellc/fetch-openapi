@@ -1,3 +1,5 @@
+# Note This repository has moved to https://github.com/kogosoftwarellc/open-api/tree/master/packages/fetch-openapi
+
 # fetch-openapi [![NPM version][npm-image]][npm-url] [![Downloads][downloads-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Coveralls Status][coveralls-image]][coveralls-url] [![Gitter chat][gitter-image]][gitter-url]
 > Client SDK generator for openapi documents using fetch.
 
